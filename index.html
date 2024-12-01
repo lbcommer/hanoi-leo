@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torres de Hanoi</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #game {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .tower {
+      width: 150px;
+      height: 300px;
+      background-color: #ddd;
+      margin: 0 10px;
+      border: 2px solid #bbb;
+      position: relative;
+      display: flex;
+      flex-direction: column-reverse; /* Los discos se apilan desde abajo */
+      align-items: center;
+    }
+    .disk {
+      height: 20px;
+      background-color: #2196F3;
+      border: 1px solid #1976D2;
+      color: white;
+      text-align: center;
+      line-height: 20px;
+      margin-bottom: 2px; /* Espacio entre discos */
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .selected {
+      border: 3px solid #FF5722;
+    }
+    #timer {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    #moves {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Torres de Hanoi de Leo</h1>
+  <p>Mueve todos los discos desde la primera torre hasta la última torre.</p>
+  <div class="controls">
+    <!-- Elimina el campo de nombre de usuario -->
+    <button onclick="startGame()">Iniciar Juego</button>
+  </div>
+  <div id="timer">Tiempo: 0 segundos</div>
+  <div id="moves">Movimientos: 0</div>
+  <div id="game">
+    <div class="tower" id="tower-1"></div>
+    <div class="tower" id="tower-2"></div>
+    <div class="tower" id="tower-3"></div>
+  </div>
+
+  <script>
+    let towers = [[], [], []];
+    const numDisks = 4; // Cambia este número para ajustar la dificultad
+    let timerInterval;
+    let timeElapsed = 0;
+    let firstMoveMade = false;
+    let moveCount = 0;
+
+    function createDisk(size) {
+      const disk = document.createElement('div');
+      disk.classList.add('disk');
+      disk.style.width = (size * 20) + 'px';
+      disk.textContent = size;
+      return disk;
+    }
+
+    function drawTowers() {
+      for (let i = 0; i < 3; i++) {
+        const towerElement = document.getElementById(`tower-${i + 1}`);
+        towerElement.innerHTML = '';
+        towers[i].forEach(disk => {
+          const diskElement = createDisk(disk);
+          towerElement.appendChild(diskElement);
+        });
+      }
+    }
+
+    function startGame() {
+      towers = [[...Array(numDisks).keys()].map(i => numDisks - i), [], []];
+      drawTowers();
+      resetTimer();
+      firstMoveMade = false;
+      moveCount = 0;
+      document.getElementById('moves').textContent = 'Movimientos: 0';
+    }
+
+    function moveDisk(from, to) {
+      if (!firstMoveMade) {
+        startTimer();
+        firstMoveMade = true;
+      }
+      if (towers[from].length === 0) return alert('No hay discos para mover.');
+      if (towers[to].length > 0 && towers[to][towers[to].length - 1] < towers[from][towers[from].length - 1]) {
+        return alert('Movimiento inválido: un disco grande no puede ir encima de uno pequeño.');
+      }
+      towers[to].push(towers[from].pop());
+      moveCount++;
+      document.getElementById('moves').textContent = `Movimientos: ${moveCount}`;
+      drawTowers();
+      if (towers[2].length === numDisks) {
+        stopTimer();
+        alert(`¡Felicidades, has ganado en ${timeElapsed} segundos con ${moveCount} movimientos!`);
+      }
+    }
+
+    function startTimer() {
+      timeElapsed = 0;
+      timerInterval = setInterval(() => {
+        timeElapsed++;
+        document.getElementById('timer').textContent = `Tiempo: ${timeElapsed} segundos`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function resetTimer() {
+      stopTimer();
+      timeElapsed = 0;
+      document.getElementById('timer').textContent = 'Tiempo: 0 segundos';
+    }
+
+    document.querySelectorAll('.tower').forEach((tower, index) => {
+      tower.addEventListener('click', function () {
+        const selected = document.querySelector('.selected');
+        if (selected) {
+          const fromIndex = parseInt(selected.dataset.index, 10);
+          moveDisk(fromIndex, index);
+          selected.classList.remove('selected');
+        } else {
+          if (towers[index].length > 0) {
+            tower.classList.add('selected');
+            tower.dataset.index = index;
+          }
+        }
+      });
+    });
+
+    startGame();
+  </script>
+</body>
+</html>
